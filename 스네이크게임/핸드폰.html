@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    #header{
+        text-align: center;
+        height: 100px;
+    }
+    #head{
+        padding: 0px;
+        border-spacing: 0px;
+    }
+    #headTd{
+        margin: auto;
+        border-style: none;
+        width: 315px;
+   
+        font-size: 24px;
+        padding: 0px;
+        border-spacing: 0px;
+    }
+    #headTd #appleTd{
+        width: 30px;
+        height: 30px;
+        font-size: 20px;
+        font-size: 24px;
+        padding: 0px;
+        border-spacing: 0px;
+    }
+    #headTd #countTd{
+        width: 30px;
+        font-size: 20px;
+        padding: 0px;
+        border-spacing: 0px;
+        font-weight: bold;
+    }
+    #headTd #PlayTd{
+        text-align: right;
+        font-size: 18px;
+        padding: 0px;
+        border-spacing: 0px;
+        line-height: 25px;
+    }
+    #PlayTd #PlayBtn{
+        border-style: none;
+        background-color: coral;
+        height: 25px;
+        color: white;
+        font-weight: bold;
+        width: 80px;
+        border-radius: 8px;
+        line-height: 25px;
+        padding: 0px;
+        border-spacing: 0px;
+    }
+    #center{
+        
+        margin: auto;
+    }
+    #footer{
+        text-align: center;
+        margin: 5px auto;
+    }
+    #msg {
+    margin: 0 auto;
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 300px;
+    height: 60px;
+    color: tomato;
+}
+    #snake {
+    border-collapse: collapse;
+    width: 325px;
+    height: 325px;
+    margin: auto;
+    }
+
+    #snake td {
+    border: 1px solid lightgray;
+    background-color: rgb(245, 244, 244);
+    }
+    #snake .snakeBody {
+    background-color: rgb(2, 191, 2);
+    }
+    #snake .snakeHead {
+    background-color: rgba(15, 117, 4, 0.84);
+    }
+    #snake .item {
+    background-color: tomato;
+    }
+</style>
+<body>
+    <div id="header">
+        <h2 style="margin: 0 auto; line-height: 50px;">Snake Game</h2>
+        <table id="headTd">
+            <tr>
+                <td id="appleTd">&#127823;</td>
+                <td id="countTd">0</td>
+                <td id="PlayTd"><button id="PlayBtn" onclick="gamestart()">▷ Play</button></td>
+            </tr>
+        </table>
+        
+    </div>
+        <div id="center">
+        </div>
+        <div id="msg">
+        </div>
+        <br>
+        <div id="footer"><input type="button" value="△" style="border-radius: 50%;width: 75px; height: 75px;" class="dirBtn" id="ArrowUp"><br><br>
+            <input type="button" id="ArrowLeft" value="◁"style="border-radius: 50%; width: 75px; height: 75px;"class="dirBtn"> &nbsp; <input type="button" class="dirBtn" id="ArrowDown" value="▽"style="border-radius: 50%; width: 75px; height: 75px;" > &nbsp; <input type="button" id="ArrowRight" class="dirBtn" value="▷"style="border-radius: 50%; width: 75px; height: 75px;" ><br>
+        </div>
+    <script>
+        let size = 19;
+        let Ssize = 4;
+        let Sy = [0, 0, 0, 0];
+        let Sx = [0, 1, 2, 3];
+        let dir = 1;
+        let count = 0;
+        let item = 9;
+        let $center = document.querySelector(`#center`);
+        let $table = document.createElement(`table`);
+        let $tr = document.createElement(`tr`);
+        let $td = document.createElement(`td`);
+        let $data = [];
+        let gameover = false;
+        let myInterval = null;
+        let myTimeout = null;
+        let max = -1;
+        let time = 3;
+        let slow = ["ε=┏(´ ロ `;)┛","=ε=┏(´ ロ `;)┛,","ε=ε=┏(´ ロ `;)┛","=ε=ε=┏(´ ロ `;)┛","ε=ε=ε=┏(´ ロ `;)┛","┗(´ ロ `;)┓=3", "┗(´ ロ `;)┓=3 =","┗(´ ロ `;)┓=3 =3","┗(´ ロ `;)┓=3 =3 =","┗(´ ロ `;)┓=3 =3 =3"];
+        let print = null;
+        let printindex = 0;
+        let printturn = false;
+        function settable(){ //테이블 셋업
+            $center = document.querySelector(`#center`)
+            $table = document.createElement(`table`)
+            $table.id = `snake`
+        for(let i = 0; i < size; i++){
+            $tr = document.createElement(`tr`);
+            for(let j = 0; j < size; j++){
+                $td = document.createElement(`td`);
+                $tr.append($td);
+            }
+            $table.append($tr)
+        }
+        $center.append($table);
+        }
+        function init(){
+        //1 $data배열값 생성
+        for(let i = 0; i < size; i++){ 
+            let $temp = [];
+            for(let j = 0; j < size; j++){
+            $temp.push(0);
+            }
+            $data.push($temp);
+        }
+        //2 뱀 그리기, 데이터배열에 뱀 인덱스 저장  + 사과는 함수? 게임템포올리기
+        $table = document.querySelector(`#snake`) 
+        for(let i = 0; i < Ssize; i++){ 
+            $data[Sy[i]][Sx[i]] = i + 1;
+            $table.children[Sy[i]].children[Sx[i]].setAttribute(`class`, `snakeBody`);
+        }
+        $table.children[Sy[Ssize - 1]].children[Sx[Ssize - 1]].setAttribute(`class`, `snakeHead`);
+        //3 첫 사과만 나머진 함수로
+        for(let i = 0; i < 3; i++){ //사과 3개만들기 
+            while(true){
+            let r1 = Math.floor(Math.random() * size);
+            let r2 = Math.floor(Math.random() * size);
+            if($data[r1][r2] == 0){
+                $data[r1][r2] = item;
+                $table.children[r1].children[r2].setAttribute(`class`, `item`)
+                break;
+            }
+            }
+        }
+        }
+        function setitem(){ //사과함수
+            $table = document.querySelector(`#snake`)
+            while(true){
+                let r1 = Math.floor(Math.random() * size);
+                let r2 = Math.floor(Math.random() * size);
+            if($data[r1][r2] == 0){
+                $data[r1][r2] = item;
+                $table.children[r1].children[r2].setAttribute(`class`, `item`)
+                break;
+            }
+            }
+        }
+        function printslow(){
+        if(printindex == slow.length){
+            printindex = 0;
+        }
+        document.querySelector(`#msg`).innerHTML = slow[printindex];
+        printindex++;
+        }
+        //뱀이 움직이는거 구현
+        function snakemove(){
+        if(count == 5){
+            clearInterval(myInterval);
+            myInterval = setInterval(snakemove, 110)
+        }
+        if(count == 10){
+            clearInterval(myInterval);
+            myInterval = setInterval(snakemove, 100)
+            if(printturn == false){
+                printturn = true;
+                print = setInterval(printslow, 500);
+            }
+        }
+        if(count == 20){
+            clearInterval(myInterval);
+            myInterval = setInterval(snakemove, 90)
+            clearInterval(print);
+            print = setInterval(printslow, 400);
+        }
+        if(count == 30){
+            clearInterval(myInterval);
+            myInterval = setInterval(snakemove, 80);
+            clearInterval(print);
+            print = setInterval(printslow, 300);
+        }
+        if(count == 40){
+            clearInterval(myInterval);
+            myInterval = setInterval(snakemove, 70)
+            clearInterval(print);
+            print = setInterval(printslow, 100);
+        }
+        if(count == 50){
+            clearInterval(myInterval);
+            myInterval = setInterval(snakemove, 60)
+            clearInterval(print);
+            print = setInterval(printslow, 50);
+        }
+        if(count == 60){
+            clearInterval(myInterval);
+            myInterval = setInterval(snakemove, 10)
+            clearInterval(print);
+            print = setInterval(printslow, 50);
+        }
+        if(gameover == true){ //게임오버의 값이 true면 게임종료창을 출력하고 interval을 삭제하여 뱀이 더이상 움직이지 않도록함
+            if(max < count){
+            max = count
+            alert(`최고기록 달성!! ${max}개의 사과를 먹었습니다! 대단한 결과에요!!`) 
+        } else {alert(`아쉬운 결과네요.. 당신의 최고기록은 ${max}개 입니다.`)}
+            clearInterval(myInterval);
+            clearInterval(print);
+            setcount();
+        }
+        let tempy = Sy[Ssize - 1];
+        let tempx = Sx[Ssize - 1];
+        if(dir == 0) tempy--;
+        else if(dir == 1) tempx++;
+        else if(dir == 2) tempy++;
+        else if(dir == 3) tempx--;
+        //게임오버
+        if(tempy >= size || tempy < 0){
+            gameover = true;
+            return;
+        }
+        if(tempx >= size || tempx < 0){
+            gameover = true;
+            return;
+        }
+        if($data[tempy][tempx] != 0 && $data[tempy][tempx] != item){ //데이터배열값 0도 아니고 아이템도 아니면 자기몸통
+            gameover = true;
+            return;
+        }
+        //아이템 먹었을 경우 재생성 + 길어짐
+        if($data[tempy][tempx] == item){
+            Sy.unshift(tempy); //0넣으면 사과가 0,0위치에 젠이 된 경우 삭제될수잇음 
+            Sx.unshift(tempx);
+            Ssize++;
+            count++;
+            countTd.innerHTML = count;
+            setitem();
+        }
+        //기존 그림 지우기
+        $table = document.querySelector(`#snake`)
+        for(let i = 0; i < Ssize; i++){
+            $data[Sy[i]][Sx[i]] = 0;
+            $table.children[Sy[i]].children[Sx[i]].setAttribute(`class`, "");
+        }
+        $table.children[Sy[Ssize - 1]].children[Sx[Ssize - 1]].setAttribute(`class`, "");
+        //움직인 위치에 다시그리기
+        for(let i = 1; i < Ssize; i++){
+            Sy[i - 1] = Sy[i];
+            Sx[i - 1] = Sx[i];
+        }
+        Sy[Ssize - 1] = tempy;
+        Sx[Ssize - 1] = tempx;
+        for(let i = 0; i < Ssize; i++){
+            $data[Sy[i]][Sx[i]] = i + 1;
+            $table.children[Sy[i]].children[Sx[i]].setAttribute(`class`, `snakeBody`);
+        }
+        $table.children[Sy[Ssize - 1]].children[Sx[Ssize - 1]].setAttribute(`class`, `snakeHead`) 
+        }
+        //게임시작버튼
+        function gamestart(){
+        
+        myInterval = setInterval(snakemove, 120);
+        document.querySelector(`#PlayBtn`).setAttribute(`disabled`, true);
+        document.querySelector(`#PlayBtn`).style.backgroundColor = `lightgray`
+        }
+        //방향조절
+        let dirBtn = document.querySelectorAll(`.dirBtn`)
+        for(let i = 0; i < dirBtn.length; i++){
+        dirBtn[i].addEventListener(`click`, (a)=>{
+        let key = a.target.id
+        if(key == `ArrowUp` && dir != 2) dir = 0;
+        else if(key == `ArrowRight` && dir != 3) dir = 1;
+        else if(key == `ArrowDown` && dir != 0) dir = 2;
+        else if(key == `ArrowLeft` && dir != 1) dir = 3;
+        
+        })
+        }
+        function setcount(){
+        if(time >= 0){
+        document.querySelector(`#msg`).innerHTML = `Game Over<br>` + time  
+        myTimeout = setTimeout(setcount, 1000);
+        time--;
+        } else {
+        clearTimeout(myTimeout)
+        restart();
+        }
+        }
+        function restart(){
+        size = 19;
+        Ssize = 4;
+        Sy = [0, 0, 0, 0];
+        Sx = [0, 1, 2, 3];
+        dir = 1;
+        count = 0;
+        item = 9;
+        $center = document.querySelector(`#center`);
+        $data = [];
+        gameover = false;
+        myInterval = null;
+        myTimeout = null;
+        time = 3;    
+        print = null;
+        printindex = 0
+        printturn = false;
+        $table = document.querySelector(`#snake`);
+        for(let i = 0; i < size; i++){
+            for(let j = 0; j < size; j++){
+                $table.children[i].children[j].setAttribute(`class`, ``);
+            }
+        }
+        init();
+        document.querySelector("#PlayBtn").removeAttribute(`disabled`, true);
+        document.querySelector("#PlayBtn").style.background = "coral"; //버튼색 원상복구
+        document.querySelector(`#countTd`).innerHTML = count;
+        document.querySelector(`#msg`).innerHTML = ``;
+        }
+        window.addEventListener(`keydown`, (a)=>{
+        let key = a.code;
+        if(key == `ArrowLeft` && dir != 1) dir = 3;
+        else if(key == `ArrowUp` && dir != 2) dir = 0;
+        else if(key == `ArrowRight` && dir != 3) dir = 1;
+        else if(key == `ArrowDown` && dir != 0) dir = 2;
+    })
+        settable();
+        init();
+    </script>
+</body>
+</html>

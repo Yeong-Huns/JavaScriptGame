@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>연습</title>
+</head>
+<style>
+#header{
+    text-align: center;
+}
+#footer{
+    text-align: center;
+}
+table, tr, td{
+    border-collapse: collapse;
+    margin: auto;
+}
+td{
+    height: 100px;
+    width: 100px;
+    text-align: center;
+    line-height: 100px;
+    border: 3px solid white;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+    font-size: 30px;
+    border-radius: 15px;
+}
+</style>
+<body>
+    <div id="header"><h3>숫자 슬라이드</h3></div>
+    <div id="center"><input type="button" value="되감기" style="margin: auto; display: block;" onclick="fn_rewind()"></div>
+    <div id="footer"></div>
+<script>
+    let $center = document.querySelector(`#center`);
+    let $footer = document.querySelector(`#footer`);
+    let $table = document.createElement(`table`);
+    let $tr = document.createElement(`tr`);
+    let $td = document.createElement(`td`);
+    let $List = [];
+    let $hint = [];
+    let size = 3;
+    let answer = [0, 0];
+    let timeout = null;
+    let rewind = [];
+    let index = 0;
+    init();
+    function init(){
+        let num = 1;
+        $table =document.createElement(`table`)
+        for(let i = 0; i < size ; i++){
+            let $temp = [];
+            $tr = document.createElement(`tr`);
+            for(let j = 0; j < size ; j++){
+            $td = document.createElement(`td`);
+            $td.style.backgroundColor = `coral`
+            $td.innerText = num;
+            $td.addEventListener(`click`, event)
+            if(num == size*size) {
+                $td.style.backgroundColor =``;
+                $td.style.cursor =`default`
+            }
+            num++ 
+            $temp.push($td);
+            $tr.append($td);
+            }
+            $List.push($temp);
+            $table.append($tr);
+        }
+        $center.append($table);
+      shuffle();
+    }
+    function hint(){
+        $hint = [];
+        for(let i = 0; i < size; i++){
+            for(let j = 0; j < size; j++){
+                if($List[i][j].innerText == size * size){
+                    answer[0] = i;
+                    answer[1] = j;
+                    if(0 <= i - 1 && i - 1 < size) $hint.push($List[i - 1][j]);
+                    if(0 <= i + 1 && i + 1 < size) $hint.push($List[i + 1][j]);
+                    if(0 <= j - 1 && j - 1 < size) $hint.push($List[i][j - 1]);
+                    if(0 <= j + 1 && j + 1 < size) $hint.push($List[i][j + 1]);
+                    break;
+                }
+            }
+        }
+        let str =``
+        for(let i = 0; i < $hint.length; i++){
+            str+=$hint[i].innerText;
+        }
+        console.log(str);
+    }
+    function shuffle(){
+        for(let k = 0; k < 1000; k++){
+            hint();
+            let x = 0;
+            let y = 0;
+        let r = Math.floor(Math.random() * $hint.length);
+        for(let i = 0; i < size; i++){
+            for(let j = 0; j < size; j++){
+                if($List[i][j] == $hint[r]){
+                    y = i;
+                    x = j;
+                    break;
+                }
+            }
+        }
+        let temp = $List[y][x].innerText;
+        $List[y][x].innerText = size*size;
+        $List[y][x].style.backgroundColor = ``;
+        $List[y][x].style.cursor =`default`  
+        $List[answer[0]][answer[1]].innerText = temp;
+        $List[answer[0]][answer[1]].style.backgroundColor = `coral`
+    }
+    }
+    function event(){
+        let y = 0;
+        let x = 0;
+        for(let i = 0; i < size; i++){
+            for(let j = 0; j < size; j++){
+                if(this == $List[i][j]){
+                    y = i;
+                    x = j;
+                    break;
+                }
+            }
+        }
+        hint();
+        let check = false;
+        for(let i = 0; i < $hint.length; i++){
+            if($List[y][x] == $hint[i]){
+                check = true;
+                break;
+            }
+        }
+        if(check){
+            let temp = $List[y][x].innerText;
+            $List[y][x].innerText = size*size;
+            $List[y][x].style.backgroundColor = ``
+            $List[y][x].style.cursor =`default`
+            $List[answer[0]][answer[1]].innerText = temp;
+            $List[answer[0]][answer[1]].style.backgroundColor = `coral` 
+            let tp_wind = [0, 0];
+            tp_wind[0] = answer[0];
+            tp_wind[1] = answer[1];
+            rewind.push(0);
+            rewind[index] = tp_wind;
+            index++;
+        }
+        game_check();
+    }
+    function game_check(){
+        let num = 1;
+        let check = true;
+        for(let i = 0; i < size; i++){
+            for(let j = 0; j < size; j++){
+                if($List[i][j].innerText != num) {
+                    check = false
+                    break;
+                }
+                num++;
+            }
+        }
+        if(check){
+        $footer.innerHTML = `<h5>게임종료!  3초뒤 게임을 재시작합니다.</h5>`
+        if(timeout == null){
+        timeout = setTimeout(restart, 3000);
+    }
+        }
+    }
+    function restart(){
+        rewind = [];
+        index = 0;
+        $List = [];
+        $hint = [];
+        size = 3;
+        answer = [0, 0];
+        timeout = null;
+        $footer.innerHTML = " ";
+        $center.children[1].remove();
+        init();
+    }
+    function fn_rewind(){
+        if(index > 0){
+            let y = 0;
+            let x = 0;
+
+        for(let i = 0; i < size; i++){
+            for(let j = 0; j < size; j++){
+                if($List[i][j].innerText == 9){
+                    y = i;
+                    x = j;
+                    break;
+                }
+            }
+        }
+        let temp = $List[rewind[index - 1][0]][rewind[index - 1][1]].innerText
+        $List[rewind[index - 1][0]][rewind[index - 1][1]].innerText= size * size;
+        $List[rewind[index - 1][0]][rewind[index - 1][1]].style.backgroundColor = ``;
+        $List[rewind[index - 1][0]][rewind[index - 1][1]].style.cursor =`default`
+        $List[y][x].innerText = temp;
+        $List[y][x].style.backgroundColor = `coral`
+        index--;
+    }
+    }
+</script>
+</body>
+</html>

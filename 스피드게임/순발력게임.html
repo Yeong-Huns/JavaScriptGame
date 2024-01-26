@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body onload="init()">
+    <style>
+        #header{
+            text-align: center;
+        }
+        #center{
+            text-align: center;
+        }
+        #timer{
+            width: 50px;
+            margin-right: 20px;
+        }
+        #rankingList{
+            text-align: center;
+            font-size: 18px;
+        }
+        table, td, tr{
+            border-collapse: collapse;
+            margin: auto;
+        }
+        td{
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+            border: 3px solid white;
+            text-align: center;
+            color: #a52a2a;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 20%;
+        }
+    </style>
+    <div id="header"><h3>스피드 게임</h3>
+    타이머 <input type="text" value="0" id="timer"><span id="hint"> 다음숫자 : 1 </span><input type="button" value="힌트" onclick="hintclick()"> 
+    </div>
+    <div id="center"></div>
+    <div id="footer"></div>
+    <br>
+    <div id="rankingList">==기록==</div>
+<script>
+    let $center = document.querySelector(`#center`);
+    let $footer = document.querySelector(`#footer`);
+    let $rankingList = document.querySelector(`#rankingList`);
+    let $table = document.createElement(`table`);
+    let $tr = document.createElement(`tr`);
+    let $td = document.createElement(`td`);
+    let $List = [];
+    let front = [];
+    let back = [];
+    let time = 0;
+    let time10 = 0;
+    let time100 = 0;
+    let gameNum = 1;
+    let size = 5;
+    let num = 1;
+    let Playernum = 1;
+    let timeid = null;
+    
+    function init(){
+        for(let i = 0; i < size; i++){
+            let fronttemp = [];
+            let backtemp = [];
+            for(let j = 0; j < size; j++){
+            fronttemp.push(num);
+            backtemp.push(num+25);
+            num++
+            }
+            front.push(fronttemp);
+            back.push(backtemp)
+        }
+        console.log(`front = ${front}`)
+        console.log(`back = ${back}`)
+       //셔플
+     for(let i = 0 ; i < 100; i++){
+            let r1 = Math.floor(Math.random() * size);
+            let r2 = Math.floor(Math.random() * size);
+            let temp = front[2][2];
+            front[2][2] = front[r1][r2]
+            front[r1][r2] = temp; 
+            r1 = Math.floor(Math.random() * size);
+            r2 = Math.floor(Math.random() * size);
+            temp = back[2][2];
+            back[2][2] = back[r1][r2];
+            back[r1][r2] = temp;
+        }
+    
+        $table = document.createElement(`table`)
+        for(let i = 0; i < size; i++){
+            $Listtemp = [];
+            $tr = document.createElement(`tr`);
+            for(let j = 0; j < size; j++){
+            $td = document.createElement(`td`);
+            $td.style.backgroundColor = `#FF7F50`
+            $td.innerText = front[i][j];
+            $td.addEventListener(`click`, td_click)
+            $Listtemp.push($td);
+            $tr.append($td)
+            }
+            $List.push($Listtemp);
+            $table.append($tr)
+        }
+        $center.append($table)
+    }
+    function td_click(){
+        let y = 0;
+        let x = 0;
+        for(let i = 0; i < size; i++){
+            for(let j = 0; j < size; j++){
+                if(this == $List[i][j]){
+                    y = i;
+                    x = j;
+                    break;
+                }
+            }
+        }
+        if(this.innerText == gameNum){
+            if(1 <= gameNum && gameNum <= 25){
+               if(gameNum == 1){
+                timeid = setInterval(start_time, 10)
+                }
+            this.innerText = back[y][x];
+            this.style.backgroundColor = `antiquewhite`
+
+            }else{
+                this.innerText = 0;
+                this.style.backgroundColor = "";
+                this.innerText = "";
+                this.removeEventListener(`click`, td_click);
+                this.style.cursor = `default`
+            }
+            gameNum++;
+            if(gameNum <= 50){
+            hint.innerHTML = `<span> 다음숫자 : ${gameNum} </span>`
+        } else{
+            hint.innerHTML = `<span> 다음숫자 : 0 </span>`
+        }
+        gameover();
+        }
+    }
+    function start_time(){
+    time++;
+    if(time == 10){
+        time = 0
+        time10++;
+    }
+    if(time10 == 10){
+        time10 = 0
+        time100++
+    }
+    timer.value = `${time100} .${time10}${time}`
+    }
+    function hintclick(){
+        for(let i = 0; i < size; i++){
+            for(let j = 0; j < size; j++){
+                if($List[i][j].innerText == gameNum){
+                    $List[i][j].style.backgroundColor = `yellowgreen`
+                }
+            }
+        }
+    }
+    function gameover(){
+        if(gameNum == 51) {
+            clearInterval(timeid)
+            let gamealert = confirm(`게임종료! 다시 플레이 하시겠습니까?`)
+            $rankingList.innerHTML += `<div style="color: red">Player : ${Playernum} </div><div>Time : ${time100}.${time10}${time} 초</div><div>======</div><br>`
+            Playernum++
+
+        if(gamealert == true){
+            restart();
+        }
+        if(gamealert == false){
+            let $restartbtn = document.createElement(`button`);
+            $restartbtn.innerText = `재시작`
+            $restartbtn.style.margin = `auto`;
+            $restartbtn.style.display = `block`
+            $restartbtn.addEventListener(`click`, (a)=>{
+                restart();
+                $footer.children[0].remove();                
+            });
+            $footer.append($restartbtn);
+        }
+        }
+    }
+    function restart(){
+    $List = [];
+    front = [];
+    back = [];
+    time = 0;
+    time10 = 0;
+    time100 = 0;
+    gameNum = 1;
+    size = 5;
+    num = 1;
+    timeid = null;
+    $table.remove();
+    init();
+    }
+
+    
+</script>
+</body>
+</html>

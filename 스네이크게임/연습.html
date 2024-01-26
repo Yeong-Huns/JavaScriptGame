@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+    <style>
+       #playBtn {
+    width: 180px;
+    height: 60px;
+    font-size: 20px;
+    font-weight: bold;
+    background-color: tomato;
+    color: white;
+    border-style: none;
+    border-radius: 8px;
+    margin: 30px 0px;
+    cursor: pointer;
+}
+
+#msg {
+    margin: 0 auto;
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+    margin-top: 20px;
+    width: 300px;
+    height: 80px;
+    color: tomato;
+}
+
+#imgTd {
+    width: 50px;
+}
+#scoreTd {
+    text-align: center;
+    width: 50px;
+    font-size: 30px;
+    font-weight: bold;
+}
+#playTd {
+    text-align: right;
+}
+
+#header {
+    margin: 0 auto;
+    margin-top: 30px;
+    text-align: center;
+    width: 700px;
+    height: 200px;
+}
+#appleTd{
+        width: 30px;
+        height: 30px;
+        font-size: 20px;
+        font-size: 24px;
+        padding: 0px;
+        border-spacing: 0px;
+}
+#content {
+    margin: 0 auto;
+    text-align: left;
+}
+
+#appleImg {
+    width: 50px;
+}
+
+#snake {
+    border-collapse: collapse;
+    width: 600px;
+    height: 600px;
+}
+
+#snake td {
+    border: 1px solid lightgray;
+    background-color: rgb(245, 244, 244);
+}
+
+#snake .snakeBody {
+    background-color: rgb(2, 191, 2);
+}
+#snake .snakeHead {
+    background-color: rgba(15, 117, 4, 0.84);
+}
+#snake .item {
+    background-color: tomato;
+}
+
+
+        
+    </style>
+<body>
+    
+    <table id="header">
+        <tr>
+            <td colspan="3"><h1>Snake Game</h1></td>
+        </tr>
+        <tr>
+            <td id="appleTd">&#127823;</td>
+            <td id="scoreTd">
+                0
+            </td>
+            <td id="playTd">
+                <button id="playBtn" onclick="gameStart()">▷ Play</button>
+            </td>
+        </tr>
+    </table>
+
+    <table id="content">
+        
+        <tr>
+            <td id="myGame" colspan="3"></td>
+        </tr>
+    </table>
+
+    <div id="msg"></div>
+
+
+<script>
+    let size = 17; //맵의 크기
+    let snakesize = 4; //뱀의 크기
+    let dir = 1; //방향  0 = 북 , 1 = 동, 2 = 남, 3 = 서 
+    let snakeY = [0, 0, 0, 0]; //뱀의 몸과 머리의 Y좌표값 저장배열
+    let snakeX = [0, 1, 2, 3]; //뱀의 몸과 머리의 X좌표값 저장배열
+    let $myGame = document.querySelector(`#myGame`); //ID = myGame 소환함수
+    let $table = document.createElement(`table`); // 테이블 Element 생성;
+    let $tr = document.createElement(`tr`); // tr Element 생성;
+    let $td = document.createElement(`td`); // td Element 생성;
+    let $data = []; // 맵의 데이터 정보(뱀의 위치, 사과의 위치 등등) 저장 배열
+    let item = 9; //아이템의 데이터값 = 9;
+    let gameover = false; //게임오버 확인변수 = false
+    let myInterval = null; //interval 지정용 함수(추후 interval 지정)
+    let myTimeout = null;
+    let count = 0; //먹은 사과개수 체크용 변수
+    let time = 3;
+    let max = -1;
+      
+    //2==== 
+    function init(){ // [1] $temp(임시)배열생성후 $data배열을 15 * 15만큼 0으로 채움
+        for(let i = 0; i < size; i++){
+            $temp = [];
+        for(let j = 0; j < size; j++){
+            $temp.push(0);
+        }
+        $data.push($temp);
+    }   
+        $table = document.querySelector(`#snake`) // [2] Id = snake인 요소를 호출; $table이라고 명명
+        for(let i = 0; i < snakesize; i++){ //뱀의 길이만큼 반복하는 반복문 
+            $data[snakeY[i]][snakeX[i]] = i + 1; // $data 배열에서 snake의 좌표 지정
+            $table.children[snakeY[i]].children[snakeX[i]].setAttribute(`class`, `snakeBody`); //snake의 좌표의 테이블에 snakebody class 지정
+        }
+        $table.children[snakeY[snakesize - 1]].children[snakeX[snakesize - 1]].setAttribute(`class`, `snakeHead`); //ㅇ=snakey, x배열의 가장 끝에 있는 좌표를 snakehead로 지정
+ 
+        setitemS(); //item 생성함수실행
+    
+     }
+     //1
+     function settable(){ // 테이블 생성함수
+        $myGame = document.querySelector(`#myGame`) //Id = myGame인 요소 소환
+        $table = document.createElement(`table`) // table 생성
+        $table.id = `snake` //table id는 snake 지정
+        for(let i = 0; i < size; i++){ //15 * 15의 값의 테이블을 생성함.
+        $tr = document.createElement(`tr`);
+        for(let j = 0; j < size; j++){
+            $td = document.createElement(`td`);
+            $tr.append($td) //$td는 tr에게 상속받음
+        }
+        $table.append($tr) // $tr은 table에게 상속받음
+    }
+    $myGame.append($table); //$table은 $myGame에게 상속받음
+     }
+   
+     
+    function setitem(){ //아이템 생성
+        while(true){ 
+        let r1 = Math.floor(Math.random() * size); //Y값지정
+        let r2 = Math.floor(Math.random() * size); //x값 지정
+        if($data[r1][r2] == 0){ //$data배열의 랜덤Y/랜덤X의 위치에 아무것도 존재하지않으면
+        $data[r1][r2] = item; //그곳을 아이템(=9)로 지정
+        let $table = document.querySelector(`#snake`); 
+        $table.children[r1].children[r2].setAttribute(`class`, `item`); // 테이블에도 해당 좌표에 사과를 그려줌
+        break;
+    }
+    }
+    }
+    function setitemS(){ //아이템 생성
+        for(let i = 0; i < 3; i++){
+        while(true){ 
+        let r1 = Math.floor(Math.random() * size); //Y값지정
+        let r2 = Math.floor(Math.random() * size); //x값 지정
+        if($data[r1][r2] == 0){ //$data배열의 랜덤Y/랜덤X의 위치에 아무것도 존재하지않으면
+        $data[r1][r2] = item; //그곳을 아이템(=9)로 지정
+        let $table = document.querySelector(`#snake`); 
+        $table.children[r1].children[r2].setAttribute(`class`, `item`); // 테이블에도 해당 좌표에 사과를 그려줌
+        break;
+    }
+    }
+}
+    }
+
+
+    function snakemove(){ // 뱀의 움직임을 구현하는 함수
+        if(count == 10){
+            clearInterval(myInterval);
+            myInterval = setInterval(snakemove, 90)
+        }
+        if(count == 20){
+            clearInterval(myInterval);
+            myInterval = setInterval(snakemove, 80)
+        }
+        if(count == 30){
+            clearInterval(myInterval);
+            myInterval = setInterval(snakemove, 70)
+        }
+        if(count == 40){
+            clearInterval(myInterval);
+            myInterval = setInterval(snakemove, 60)
+        }
+        if(count == 50){
+            clearInterval(myInterval);
+            myInterval = setInterval(snakemove, 50)
+        }
+        if(gameover == true){ //게임오버의 값이 true면 게임종료창을 출력하고 interval을 삭제하여 뱀이 더이상 움직이지 않도록함
+            if(max < count){
+            max = count
+            alert(`최고기록 달성!! ${max}개의 사과를 먹었습니다!`)
+        } else {alert(`아쉬운 결과네요.. 당신의 최고기록은 ${max}개 입니다.`)}
+            clearInterval(myInterval);
+            setcount();
+
+        }
+        $table = document.querySelector(`#snake`)
+        let tempy = snakeY[snakesize - 1]; //임시Y의 값을 snakehead의 Y좌표로 지정 
+        let tempx = snakeX[snakesize - 1]; //임시X의 값을 snakehead의 X좌표로 지정
+        if(dir == 0) tempy--; // 방향값이 0이면 (북쪽으로 이동) 임시Y값을 감소시킴
+        else if(dir == 1) tempx++; //방향값이 1이면 (동쪽으로 이동) 임시 X값을 증가시킴
+        else if(dir == 2) tempy++; //방향값이 2이면 (남쪽으로 이동) 임시 Y값을 증가시킴
+        else if(dir == 3) tempx--; //방향값이 3이면 (서쪽으로 이동) 임시 X값을 감소시킴
+        
+        if(tempy >= size || tempy < 0){ //임시Y의 좌표가 맵밖이면 gameover의 값을 true로 변경
+            gameover = true;
+            return;
+        }
+        if(tempx >= size || tempy < 0){ //임시x의 좌표가 맵밖이면 gameover의 값을 true로 변경
+            gameover = true;
+            return;
+        }
+        if($data[tempy][tempx] != 0 && $data[tempy][tempx] != item){ // 임시좌표가 0도 아니고 아이템도 아니면 gameover의 값을 true로 변경
+            gameover = true;
+            return;
+        }
+        
+        
+        //아이템 먹엇을경우 
+        if($data[tempy][tempx] == item){ //임시좌표가 item의 좌표와 같다면
+            snakeY.unshift(tempy) //snakey 꼬리값에 tempy를 넣는다
+            snakeX.unshift(tempx) //snakex 꼬리값에 tempx를 넣는다
+            snakesize++; //스네이크사이즈를 증가시킨다
+            count++ // 먹은 사과의 개수를 하나 늘린다.
+            scoreTd.innerText = count; // scoreTd의 텍스트값 = count 
+            setitem(); //새로운 사과를 생성한다
+        }
+        //1기존위치 뱀삭제
+        for(let i = 0; i < snakesize; i++){ // 뱀의 사이즈만큼 반복문
+            $data[snakeY[i]][snakeX[i]] = 0; // 뱀의 몸의 y좌표와 x 좌표의 값의 데이터를 0으로 변경
+            $table.children[snakeY[i]].children[snakeX[i]].setAttribute(`class`, ""); // 테이블에서 뱀의 몸의 y좌표와 x좌표의 클래스를 해제
+        }
+        $table.children[snakeY[snakesize - 1]].children[snakeX[snakesize - 1]].setAttribute(`class`, ""); //뱀의 머리를 삭제
+      
+        
+        //2뱀 움직이기
+        for(let i = 1; i < snakesize; i++){ 
+            snakeY[i - 1] = snakeY[i]; //뱀의 Y좌표 배열과 X좌표 배열을 왼쪽으로 한칸씩 당김
+            snakeX[i - 1] = snakeX[i];
+        } 
+        snakeY[snakesize - 1] = tempy; //tempY와 X를 새로운 머리의 좌표로 지정
+        snakeX[snakesize - 1] = tempx; 
+
+
+        //3새로운 위치에 뱀  다시 그리기
+        for(let i = 0; i < snakesize; i++){ //  뱀의 사이즈만큼 반복
+            $data[snakeY[i]][snakeX[i]] = i + 1; //데이터배열에서 뱀의 Y좌표 배열과 X좌표배열의 위치에 1씩증가하는 값을 넣어 뱀의 인덱스를 표시
+            $table.children[snakeY[i]].children[snakeX[i]].setAttribute(`class`, `snakeBody`); //테이블에서 뱀의 Y좌표배열과 X좌표배열의 위치에 스네이크바디 클래스 지정
+        }
+        $table.children[snakeY[snakesize - 1]].children[snakeX[snakesize - 1]].setAttribute(`class`, `snakeHead`); // 머리지정
+      
+    }
+    
+function gameStart() { //게임스타트 함수
+    myInterval = setInterval(snakemove, 100); //0.1초마다 snakemove함수 실행
+
+    document.querySelector("#playBtn").setAttribute("disabled", true); //플레이버튼 요소 호출/ 사용불가, true
+    document.querySelector("#playBtn").style.background = "lightgray"; //버튼색을 연회색으로 변경
+}
+window.addEventListener(`keydown`, (a)=>{
+        let key = a.code;
+        if(key == `ArrowLeft` && dir != 1) dir = 3;
+        if(key == `ArrowUp` && dir != 2) dir = 0;
+        if(key == `ArrowRight` && dir != 3) dir = 1;
+        if(key == `ArrowDown` && dir != 0) dir = 2;
+        console.log(`dir = ${dir}`)
+    })
+    function setcount(){
+        if(time >= 0){
+    document.querySelector(`#msg`).innerHTML = `Game Over<br>` + time  
+        myTimeout = setTimeout(setcount, 1000);
+        time--;
+    } else {
+        clearTimeout(myTimeout)
+        restart();
+    }
+       
+    }
+    function restart(){
+       
+    size = 17; //맵의 크기
+    snakesize = 4; //뱀의 크기
+    dir = 1; //방향  0 = 북 , 1 = 동, 2 = 남, 3 = 서 
+    snakeY = [0, 0, 0, 0]; //뱀의 몸과 머리의 Y좌표값 저장배열
+    snakeX = [0, 1, 2, 3]; //뱀의 몸과 머리의 X좌표값 저장배열
+    $data = []; // 맵의 데이터 정보(뱀의 위치, 사과의 위치 등등) 저장 배열
+    item = 9; //아이템의 데이터값 = 9;
+    gameover = false; //게임오버 확인변수 = false
+    myInterval = null; //interval 지정용 함수(추후 interval 지정)
+    count = 0; //먹은 사과개수 체크용 변수
+    time = 3;
+    $table = document.querySelector(`#snake`)
+    
+    for(let i = 0; i < size; i ++){
+        for(let j = 0; j < size; j++){
+            $table.children[i].children[j].setAttribute(`class`, "")
+        }
+    }
+    init();
+    document.querySelector("#playBtn").removeAttribute(`disabled`, true);
+    document.querySelector("#playBtn").style.background = "coral"; //버튼색 원상복구
+    document.querySelector(`#scoreTd`).innerText = 0;
+    document.querySelector(`#msg`).innerHTML = ``
+    }
+     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   
+    /*
+    01230
+    00040
+    00000
+    00000
+
+    00120
+    00030
+    00040
+    00000
+    00000
+
+    00010
+    00020
+    00030
+    00040
+    00000
+    */
+   
+   settable();
+   init();
+    
+</script>
+</body>
+</html>

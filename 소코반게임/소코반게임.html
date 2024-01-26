@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #header{
+            text-align: center;
+        }
+        #footer{
+            text-align: center;
+        }
+        #start{
+            width: 365px;
+            height: 365px;
+            margin: 0 auto;
+        }
+      
+    </style>
+</head>
+<body onload="init()">
+    <div id="header"><h2>push push</h2></div>
+    <div id="center">
+    <table id="start">
+        <tr>
+            <td>
+                <img src="./Files/css/image/start1.jpg" style="object-fit: cover;">
+            </td>
+        </tr>
+    </table>
+    </div>
+    <div id="footer">
+        <h6>아무키나 입력하세요.</h6>
+        <h6 style="color: #00FF00">Press any key to continue_</h6>
+    </div>
+    <script>
+        let number = 0;
+        let key = null;
+        let imgList = [
+        `<img src="./Files/css/image/start1.jpg" style="object-fit: cover;">`,
+        `<img src="./Files/css/image/start2.jpg" style="object-fit: cover;">`,
+        `<img src="./Files/css/image/start3.jpg" style="object-fit: cover;">`,
+        `<img src="./Files/css/image/start4.jpg" style="object-fit: cover;">`,
+        `<img src="./Files/css/image/start5.jpg" style="object-fit: cover;">`,
+        `<img src="./Files/css/image/start6.jpg" style="object-fit: cover;">`    
+        ];
+        window.addEventListener(`keydown`, (a)=>{
+            key = a.code;
+           if(key != null){
+            location.href = "./Files/stage/stage1.html";
+           }
+        });
+        function init(){
+            setInterval(change_Img, 450);
+        }
+        function change_Img(){
+            $start = document.querySelector(`#start`);
+            number++
+            if(number > 5) number = 0;
+            $start.children[0].children[0].children[0].innerHTML = imgList[number];
+
+        }
+    </script>
+</body>
+</html>
